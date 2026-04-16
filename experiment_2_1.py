@@ -1,9 +1,13 @@
 # Unsupervised — Autoencoder / Feature Extraction
 
+import os
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 from main import train_loader
+
+output_dir = "output"
+os.makedirs(output_dir, exist_ok=True)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -84,14 +88,16 @@ autoencoder, ae_losses = train_autoencoder(
     lr=0.001
 )
 
-torch.save(autoencoder.encoder.state_dict(), "encoder.pth")
+torch.save(autoencoder.encoder.state_dict(), "output/encoder.pth")
 
 # Result visualization
+plt.figure(figsize=(8, 5))
 plt.plot(ae_losses)
 plt.title("Autoencoder Training Loss")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
-plt.show()
+plt.savefig(os.path.join(output_dir, "autoencoder_training_loss.png"))
+plt.close()
 
 
 
@@ -116,4 +122,5 @@ for i in range(5):
 axes[0, 0].set_title("Original")
 axes[1, 0].set_title("Reconstructed")
 
-plt.show()
+plt.savefig(os.path.join(output_dir, "autoencoder_reconstructed_images.png"))
+plt.close()

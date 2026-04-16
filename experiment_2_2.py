@@ -1,5 +1,6 @@
 # Unsupervised — Autoencoder / Feature Extraction
 
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,6 +8,9 @@ import matplotlib.pyplot as plt
 
 from experiment_2_1 import Autoencoder
 from main import train_loader, val_loader
+
+output_dir = "output"
+os.makedirs(output_dir, exist_ok=True)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -20,7 +24,7 @@ class Encoder(nn.Module):
         return self.encoder(x)
 
 encoder = Encoder()
-encoder.encoder.load_state_dict(torch.load("encoder.pth"))
+encoder.encoder.load_state_dict(torch.load("output/encoder.pth"))
 encoder.to(device)
 
 # Classifier using Frozen Encoder and Fine-tuning
@@ -51,7 +55,7 @@ class Classifier(nn.Module):
 model_frozen = Classifier(encoder, freeze_encoder=True).to(device)
 
 encoder_ft = Encoder()
-encoder_ft.encoder.load_state_dict(torch.load("encoder.pth"))
+encoder_ft.encoder.load_state_dict(torch.load("output/encoder.pth"))
 
 model_finetune = Classifier(encoder_ft, freeze_encoder=False).to(device)
 
@@ -136,11 +140,12 @@ axes[2].legend()
 
 plt.suptitle("Frozen Encoder vs Fine-tuned Encoder", fontsize=13, fontweight="bold")
 plt.tight_layout()
-plt.show()
+plt.savefig(os.path.join(output_dir, "encoder_comparison.png"))
+plt.close()
 
 
 # Prediction Visualization
-def show_predictions(model, loader):
+def show_predictions(model, loader, filename):
 
     model.eval()
     images, labels = next(iter(loader))
@@ -156,10 +161,11 @@ def show_predictions(model, loader):
         axes[i].set_title(f"Pred: {int(preds[i].item())}\nTrue: {labels[i]}", fontsize=8)
         axes[i].axis("off")
     plt.tight_layout()
-    plt.show()
+    plt.savefig(os.path.join(output_dir, filename))
+    plt.close()
 
 print("Frozen Model Predictions")
-show_predictions(model_frozen, val_loader)
+show_predictions(model_frozen, val_loader, "frozen_model_predictions.png")
 
 print("Fine-tuned Model Predictions")
-show_predictions(model_finetune, val_loader)
+show_predictions(model_finetune, val_loader, "finetuned_model_predictions.png")
