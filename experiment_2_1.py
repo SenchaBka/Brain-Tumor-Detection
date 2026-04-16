@@ -1,0 +1,119 @@
+# Unsupervised — Autoencoder / Feature Extraction
+
+import torch
+import torch.nn as nn
+import matplotlib.pyplot as plt
+from main import train_loader
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Autoencoder Model
+class Autoencoder(nn.Module):
+    def __init__(self):
+        super(Autoencoder, self).__init__()
+
+        # Encoder
+        self.encoder = nn.Sequential(
+            nn.Conv2d(3, 32, 3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, 3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 128, 3, stride=2, padding=1),
+            nn.ReLU()
+        )
+
+        # Decoder
+        self.decoder = nn.Sequential(
+            nn.ConvTranspose2d(128, 64, 3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1),
+            nn.ReLU(),
+            nn.ConvTranspose2d(32, 3, 3, stride=2, padding=1, output_padding=1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        encoded = self.encoder(x)
+        decoded = self.decoder(encoded)
+        return decoded
+    
+# Training Function
+
+import torch.optim as optim
+
+def train_autoencoder(model, train_loader, epochs=10, lr=0.001):
+
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+
+    model.to(device)
+
+    losses = []
+
+    for epoch in range(epochs):
+        model.train()
+        running_loss = 0
+
+        for images, _ in train_loader:
+            images = images.to(device)
+
+            optimizer.zero_grad()
+
+            outputs = model(images)
+            loss = criterion(outputs, images)
+
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item()
+
+        epoch_loss = running_loss / len(train_loader)
+        losses.append(epoch_loss)
+
+        print(f"Epoch [{epoch+1}/{epochs}] Loss: {epoch_loss:.4f}")
+
+    return model, losses
+
+# Autoencoder Training
+autoencoder = Autoencoder()
+
+autoencoder, ae_losses = train_autoencoder(
+    autoencoder,
+    train_loader,
+    epochs=10,
+    lr=0.001
+)
+
+torch.save(autoencoder.encoder.state_dict(), "encoder.pth")
+
+# Result visualization
+plt.plot(ae_losses)
+plt.title("Autoencoder Training Loss")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.show()
+
+
+
+images, _ = next(iter(train_loader))
+images = images.to(device)
+
+with torch.no_grad():
+    reconstructed = autoencoder(images)
+
+# Move to CPU for plotting
+images = images.cpu()
+reconstructed = reconstructed.cpu()
+
+fig, axes = plt.subplots(2, 5, figsize=(10, 4))
+
+for i in range(5):
+    axes[0, i].imshow(images[i].permute(1, 2, 0))
+    axes[0, i].axis("off")
+    axes[1, i].imshow(reconstructed[i].permute(1, 2, 0))
+    axes[1, i].axis("off")
+
+axes[0, 0].set_title("Original")
+axes[1, 0].set_title("Reconstructed")
+
+plt.show()
