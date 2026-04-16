@@ -88,7 +88,21 @@ autoencoder, ae_losses = train_autoencoder(
     lr=0.001
 )
 
-torch.save(autoencoder.encoder.state_dict(), "output/encoder.pth")
+torch.save(autoencoder.encoder.state_dict(), os.path.join(output_dir, "encoder.pth"))
+
+# Save training metrics to txt file
+final_loss = ae_losses[-1] if ae_losses else 0
+with open(os.path.join(output_dir, "accuracy_comparison.txt"), "a") as f:
+    f.write("="*60 + "\n")
+    f.write("EXPERIMENT 2.1: Unsupervised Autoencoder\n")
+    f.write("="*60 + "\n\n")
+    f.write("Note: This is unsupervised learning, so no classification accuracy.\n")
+    f.write(f"Final Autoencoder Reconstruction Loss: {final_loss:.6f}\n")
+    f.write(f"Initial Reconstruction Loss: {ae_losses[0]:.6f}\n")
+    f.write(f"Loss Improvement: {ae_losses[0] - final_loss:.6f}\n")
+    f.write(f"Epochs Trained: {len(ae_losses)}\n\n")
+
+print("✓ Metrics saved to output/accuracy_comparison.txt")
 
 # Result visualization
 plt.figure(figsize=(8, 5))

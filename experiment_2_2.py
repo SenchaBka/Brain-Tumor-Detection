@@ -24,7 +24,7 @@ class Encoder(nn.Module):
         return self.encoder(x)
 
 encoder = Encoder()
-encoder.encoder.load_state_dict(torch.load("output/encoder.pth"))
+encoder.encoder.load_state_dict(torch.load(os.path.join(output_dir, "encoder.pth")))
 encoder.to(device)
 
 # Classifier using Frozen Encoder and Fine-tuning
@@ -169,3 +169,26 @@ show_predictions(model_frozen, val_loader, "frozen_model_predictions.png")
 
 print("Fine-tuned Model Predictions")
 show_predictions(model_finetune, val_loader, "finetuned_model_predictions.png")
+
+# Save accuracy results to txt file
+final_frozen_acc = val_acc_frozen[-1] if val_acc_frozen else 0
+final_finetune_acc = val_acc_finetune[-1] if val_acc_finetune else 0
+
+with open(os.path.join(output_dir, "accuracy_comparison.txt"), "a") as f:
+    f.write("="*60 + "\n")
+    f.write("EXPERIMENT 2.2: Transfer Learning (Using Pre-trained Encoder)\n")
+    f.write("="*60 + "\n\n")
+    
+    f.write(f"Frozen Encoder (Feature Extractor Fixed):\n")
+    f.write(f"  Final Validation Accuracy: {final_frozen_acc:.4f}\n")
+    f.write(f"  Final Validation Loss: {val_loss_frozen[-1]:.4f}\n\n")
+    
+    f.write(f"Fine-tuned Encoder (All Parameters Trainable):\n")
+    f.write(f"  Final Validation Accuracy: {final_finetune_acc:.4f}\n")
+    f.write(f"  Final Validation Loss: {val_loss_finetune[-1]:.4f}\n\n")
+    
+    f.write(f"Comparison:\n")
+    f.write(f"  Better Approach: {'Fine-tuned' if final_finetune_acc > final_frozen_acc else 'Frozen'}\n")
+    f.write(f"  Accuracy Difference: {abs(final_finetune_acc - final_frozen_acc):.4f}\n\n")
+
+print("\n✓ Accuracies saved to output/accuracy_comparison.txt")

@@ -1,10 +1,14 @@
 # Experiment 1 (Supervised CNN)
 
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
 from main import train_loader, test_loader, val_loader, train_loader_no_aug
+
+output_dir = "output"
+os.makedirs(output_dir, exist_ok=True)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -214,3 +218,24 @@ for r in results:
     print(f"Config: {r['config']}, "
           f"Val Loss: {r['final_val_loss']:.4f}, "
           f"Val Acc: {r['final_val_acc']:.4f}")
+
+# Save accuracy results to txt file
+with open(os.path.join(output_dir, "accuracy_comparison.txt"), "w") as f:
+    f.write("="*60 + "\n")
+    f.write("EXPERIMENT 1: Supervised CNN\n")
+    f.write("="*60 + "\n\n")
+    
+    f.write(f"Best Model Config: {results[-1]['config']}\n")
+    f.write(f"Best Validation Accuracy: {results[-1]['final_val_acc']:.4f}\n")
+    f.write(f"Best Validation Loss: {results[-1]['final_val_loss']:.4f}\n\n")
+    
+    f.write(f"Augmentation Impact:\n")
+    f.write(f"  WITH Augmentation: {val_acc_aug[-1]:.4f}\n")
+    f.write(f"  WITHOUT Augmentation: {val_acc_no_aug[-1]:.4f}\n\n")
+    
+    f.write(f"All Configurations:\n")
+    for r in results:
+        f.write(f"  Config {r['config']}: Val Acc = {r['final_val_acc']:.4f}, Val Loss = {r['final_val_loss']:.4f}\n")
+    f.write("\n")
+
+print("\n✓ Accuracies saved to output/accuracy_comparison.txt")
