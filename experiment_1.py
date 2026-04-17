@@ -127,7 +127,7 @@ model_aug, _, _, _, val_acc_aug = train_model(
     model_aug,
     train_loader,
     val_loader,
-    epochs=10,
+    epochs=20,
     lr=0.0005
 )
 
@@ -140,7 +140,7 @@ model_no_aug, _, _, _, val_acc_no_aug = train_model(
     model_no_aug,
     train_loader_no_aug,
     val_loader,
-    epochs=10,
+    epochs=20,
     lr=0.0005
 )
 
@@ -167,7 +167,7 @@ for config in configs:
         model,
         train_loader,
         val_loader,
-        epochs=5,
+        epochs=10,
         lr=config["lr"]
     )
 
