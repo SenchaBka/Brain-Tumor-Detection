@@ -78,63 +78,64 @@ def train_autoencoder(model, train_loader, epochs=10, lr=0.001):
 
     return model, losses
 
-# Autoencoder Training
-autoencoder = Autoencoder()
+if __name__ == "__main__":
+    # Autoencoder Training
+    autoencoder = Autoencoder()
 
-autoencoder, ae_losses = train_autoencoder(
-    autoencoder,
-    train_loader,
-    epochs=10,
-    lr=0.001
-)
+    autoencoder, ae_losses = train_autoencoder(
+        autoencoder,
+        train_loader,
+        epochs=20, # Increased from 10
+        lr=0.001
+    )
 
-torch.save(autoencoder.encoder.state_dict(), os.path.join(output_dir, "encoder.pth"))
+    torch.save(autoencoder.encoder.state_dict(), os.path.join(output_dir, "encoder.pth"))
 
-# Save training metrics to txt file
-final_loss = ae_losses[-1] if ae_losses else 0
-with open(os.path.join(output_dir, "accuracy_comparison.txt"), "a") as f:
-    f.write("="*60 + "\n")
-    f.write("EXPERIMENT 2.1: Unsupervised Autoencoder\n")
-    f.write("="*60 + "\n\n")
-    f.write("Note: This is unsupervised learning, so no classification accuracy.\n")
-    f.write(f"Final Autoencoder Reconstruction Loss: {final_loss:.6f}\n")
-    f.write(f"Initial Reconstruction Loss: {ae_losses[0]:.6f}\n")
-    f.write(f"Loss Improvement: {ae_losses[0] - final_loss:.6f}\n")
-    f.write(f"Epochs Trained: {len(ae_losses)}\n\n")
+    # Save training metrics to txt file
+    final_loss = ae_losses[-1] if ae_losses else 0
+    with open(os.path.join(output_dir, "accuracy_comparison.txt"), "a") as f:
+        f.write("="*60 + "\n")
+        f.write("EXPERIMENT 2.1: Unsupervised Autoencoder\n")
+        f.write("="*60 + "\n\n")
+        f.write("Note: This is unsupervised learning, so no classification accuracy.\n")
+        f.write(f"Final Autoencoder Reconstruction Loss: {final_loss:.6f}\n")
+        f.write(f"Initial Reconstruction Loss: {ae_losses[0]:.6f}\n")
+        f.write(f"Loss Improvement: {ae_losses[0] - final_loss:.6f}\n")
+        f.write(f"Epochs Trained: {len(ae_losses)}\n\n")
 
-print("✓ Metrics saved to output/accuracy_comparison.txt")
+    print("✓ Metrics saved to output/accuracy_comparison.txt")
 
-# Result visualization
-plt.figure(figsize=(8, 5))
-plt.plot(ae_losses)
-plt.title("Autoencoder Training Loss")
-plt.xlabel("Epoch")
-plt.ylabel("Loss")
-plt.savefig(os.path.join(output_dir, "autoencoder_training_loss.png"))
-plt.close()
+    # Result visualization
+    plt.figure(figsize=(8, 5))
+    plt.plot(ae_losses)
+    plt.title("Autoencoder Training Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.savefig(os.path.join(output_dir, "autoencoder_training_loss.png"))
+    plt.close()
 
 
 
-images, _ = next(iter(train_loader))
-images = images.to(device)
+    images, _ = next(iter(train_loader))
+    images = images.to(device)
 
-with torch.no_grad():
-    reconstructed = autoencoder(images)
+    with torch.no_grad():
+        reconstructed = autoencoder(images)
 
-# Move to CPU for plotting
-images = images.cpu()
-reconstructed = reconstructed.cpu()
+    # Move to CPU for plotting
+    images = images.cpu()
+    reconstructed = reconstructed.cpu()
 
-fig, axes = plt.subplots(2, 5, figsize=(10, 4))
+    fig, axes = plt.subplots(2, 5, figsize=(10, 4))
 
-for i in range(5):
-    axes[0, i].imshow(images[i].permute(1, 2, 0))
-    axes[0, i].axis("off")
-    axes[1, i].imshow(reconstructed[i].permute(1, 2, 0))
-    axes[1, i].axis("off")
+    for i in range(5):
+        axes[0, i].imshow(images[i].permute(1, 2, 0))
+        axes[0, i].axis("off")
+        axes[1, i].imshow(reconstructed[i].permute(1, 2, 0))
+        axes[1, i].axis("off")
 
-axes[0, 0].set_title("Original")
-axes[1, 0].set_title("Reconstructed")
+    axes[0, 0].set_title("Original")
+    axes[1, 0].set_title("Reconstructed")
 
-plt.savefig(os.path.join(output_dir, "autoencoder_reconstructed_images.png"))
-plt.close()
+    plt.savefig(os.path.join(output_dir, "autoencoder_reconstructed_images.png"))
+    plt.close()
