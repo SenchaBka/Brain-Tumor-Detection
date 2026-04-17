@@ -38,17 +38,21 @@ class Classifier(nn.Module):
             for param in self.encoder.parameters():
                 param.requires_grad = False
 
+        # Global Average Pooling to reduce dimensionality: 128*28*28 -> 128
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(128 * 28 * 28, 256),
+            nn.Linear(128, 64),
             nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Linear(256, 1),
+            nn.Linear(64, 1),
             nn.Sigmoid()
         )
 
     def forward(self, x):
         features = self.encoder(x)
+        features = self.avgpool(features)  # Reduce dimensions
         output = self.classifier(features)
         return output
 
@@ -61,7 +65,7 @@ model_finetune = Classifier(encoder_ft, freeze_encoder=False).to(device)
 
 
 # Training Function
-def train_classifier(model, train_loader, val_loader, epochs=10, lr=0.001):
+def train_classifier(model, train_loader, val_loader, epochs=20, lr=0.001):
 
     criterion = nn.BCELoss()
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
@@ -109,8 +113,8 @@ def train_classifier(model, train_loader, val_loader, epochs=10, lr=0.001):
 
 
 # Train both models and visualize results
-train_loss_frozen, val_loss_frozen, val_acc_frozen = train_classifier(model_frozen, train_loader, val_loader)
-train_loss_finetune, val_loss_finetune, val_acc_finetune = train_classifier(model_finetune, train_loader, val_loader)
+train_loss_frozen, val_loss_frozen, val_acc_frozen = train_classifier(model_frozen, train_loader, val_loader, epochs=20)
+train_loss_finetune, val_loss_finetune, val_acc_finetune = train_classifier(model_finetune, train_loader, val_loader, epochs=20)
 
 fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 
