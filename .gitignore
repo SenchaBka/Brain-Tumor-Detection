@@ -4,8 +4,7 @@ __pycache__/
 *venv*/
 .env
 
-# Datasets (Downloaded by KaggleHub)
-brain_tumor_dataset/
+
 
 # Deep Learning Model Weights
 *.pth
@@ -19,3 +18,24 @@ augmented_samples/
 
 # OS Generated Files
 .DS_Store
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Research Artifacts (The heavy/auto-generated stuff)
+research/output/
+research/weights/
+research/augmented_samples/
+
+# Production Models
+app/Models/*.keras
+app/Models/*.h5
+
+# Data
+dataset/
+dataset.zip
+
+# Frontend (if you move it here later)
+frontend/node_modules/
+frontend/.next/

@@ -1,7 +1,0 @@
-kaggle
-kagglehub>=0.3.6
-Pillow
-matplotlib
-torch
-torchvision
-scikit-learn

@@ -72,7 +72,7 @@ python main.py
 python experiment_1.py       
 python experiment_2_1.py    
 python experiment_2_2.py  
-
+```
 ## Results & Output Files
 
 All results saved to `output/` folder:
@@ -142,6 +142,112 @@ All results saved to `output/` folder:
 ### Experiment 3: 
 
 ---
+
+# 🧠 Application : NeuroScan AI: Brain Tumor Detection Portal
+
+**NeuroScan AI** is a medical imaging service that utilizes Deep Learning (**EfficientNetB0**) to detect tumors in axial brain MRI scans. The project is architected using the **Service-Layer, Repository, and Adapter patterns** to ensure scalability, maintainability, and clear separation of concerns.
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| **Frontend** | Streamlit (Python-based UI) |
+| **Backend API** | Flask (Python) |
+| **AI Model** | TensorFlow / Keras (EfficientNetB0 Transfer Learning) |
+| **Image Processing** | Pillow (PIL), NumPy |
+| **Communication** | REST API (JSON via HTTP) |
+
+## 📚 Core Libraries
+* **TensorFlow:** For model inference and loading the pre-trained weights.
+* **Flask & Flask-CORS:** To host the RESTful API and handle cross-origin requests.
+* **Streamlit:** To provide a responsive, user-friendly diagnostic interface.
+* **Pillow:** For consistent image resizing and RGB conversion.
+* **Requests:** For communication between the UI and the Backend.
+
+---
+
+## 🏗️ Architecture Design Patterns
+
+This project follows a decoupled architecture to separate business logic from data providers and the web interface.
+
+
+
+### 1. Adapter Pattern (`image_adapter.py`)
+The **Adapter** acts as a "translator." It takes raw bytes from the HTTP request and transforms them into a normalized NumPy tensor. This ensures that the model always receives data in the exact format it was trained on (e.g., 224x224 RGB), regardless of the original file's dimensions.
+
+### 2. Repository Pattern (`model_repository.py`)
+
+The **Repository** manages the persistence and lifecycle of the AI model. It handles the heavy lifting of loading the `.keras` file from the disk into memory. By isolating this, the rest of the application doesn't need to know *how* the model is stored or loaded.
+
+### 3. Service Layer (`prediction_service.py`)
+The **Service** layer is the "Brain" of the application. It coordinates the logic:
+1. Receiving the processed image from the **Adapter**.
+2. Requesting the model from the **Repository**.
+3. Executing the prediction and applying business rules (e.g., applying the 0.5 probability threshold for "Tumor" vs. "Healthy").
+
+### 4. Presentation Layer (`ui.py` & `app.py`)
+The **Flask API** acts as the delivery mechanism for the services, while the **Streamlit UI** provides a human-readable interface for doctors and researchers to interact with the system.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+* Python 3.9+
+* Virtual Environment (recommended)
+
+### 2. Virtual Environment & Packages
+```bash
+# Clone the repository
+git clone https://github.com/SenchaBka/Brain-Tumor-Detection.git
+cd Brain-Tumor-Detection
+
+# Create and activate virtual environment
+python3 -m venv venv
+
+# for MacOS
+source venv/bin/activate
+
+# Install dependencies for Application (not research)
+pip install -r tensorflow Pillow Flask numpy
+```
+### Download the model from Huggin face
+```bash
+cd app
+python3 script.py
+
+```
+### 2. Run the Backend
+current-directory: Brain-Tumor-Detection
+```bash
+cd app
+python3 app.py
+```
+The API will run at http://127.0.0.1:5000
+
+### 3. Run the Frontend
+Go back to root directory : Brain-Tumor-Detection
+```bash
+streamlit run frontend/ui.py
+```
+
+### Project Structure
+
+```bash
+BRAIN-TUMOR-DETECTION/
+├── app/                      # Production Backend
+│   ├── models/               # Pre-trained .keras files
+│   ├── app.py                # Flask Entry Point
+│   ├── image_adapter.py      # Data Transformation (Adapter)
+│   ├── model_repository.py   # Model Loading (Repository)
+│   └── prediction_service.py # Business Logic (Service)
+├── frontend/                 # Streamlit UI
+│   └── ui.py
+├── research/                 # Experimental Scripts, Model Weights
+├── dataset/                  # MRI Scans in train_test_val split ()
+├── requirements.txt          # Global Dependencies
+└── README.md
+```
 
 ## References
 

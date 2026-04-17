@@ -216,7 +216,7 @@ def plot_confusion_matrix(model, dataset, class_names):
     for images, labels in dataset:
         preds = model.predict(images, verbose=0)
         y_true.extend(labels.numpy())
-        # changed from 0.5 to 0.3
+        # changed from 0.5 
         y_pred.extend((preds > 0.5).astype(int).flatten())
 
     # 2. Compute Matrix
