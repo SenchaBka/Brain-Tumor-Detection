@@ -4,7 +4,7 @@ import os
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
-from main import train_loader
+from scripts.main import train_loader
 
 output_dir = "output"
 os.makedirs(output_dir, exist_ok=True)

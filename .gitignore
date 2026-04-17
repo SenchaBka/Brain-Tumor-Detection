@@ -1,4 +1,21 @@
-.venv/
-venv/
-output/
+# Python & Virtual Environments
 __pycache__/
+*.py[cod]
+*venv*/
+.env
+
+# Datasets (Downloaded by KaggleHub)
+brain_tumor_dataset/
+
+# Deep Learning Model Weights
+*.pth
+*.h5
+*.keras
+models/
+
+# Experiment Outputs (Plots, Metrics, Augmented Images)
+output/
+augmented_samples/
+
+# OS Generated Files
+.DS_Store

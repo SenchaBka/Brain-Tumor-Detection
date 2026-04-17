@@ -6,8 +6,8 @@ import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
 
-from experiment_2_1 import Autoencoder
-from main import train_loader, val_loader
+from scripts.experiment_2_1 import Autoencoder
+from scripts.main import train_loader, val_loader
 
 output_dir = "output"
 os.makedirs(output_dir, exist_ok=True)
