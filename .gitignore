@@ -1,4 +1,41 @@
-.venv/
-venv/
-output/
+# Python & Virtual Environments
 __pycache__/
+*.py[cod]
+*venv*/
+.env
+
+
+
+# Deep Learning Model Weights
+*.pth
+*.h5
+*.keras
+models/
+
+# Experiment Outputs (Plots, Metrics, Augmented Images)
+output/
+augmented_samples/
+
+# OS Generated Files
+.DS_Store
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Research Artifacts (The heavy/auto-generated stuff)
+research/output/
+research/weights/
+research/augmented_samples/
+
+# Production Models
+app/Models/*.keras
+app/Models/*.h5
+
+# Data
+dataset/
+dataset.zip
+
+# Frontend (if you move it here later)
+frontend/node_modules/
+frontend/.next/
