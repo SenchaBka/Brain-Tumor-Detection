@@ -54,27 +54,6 @@ pip install -r requirements.txt
 ```
 ---
 
-## Running Research Experiments
-
-Navigate to the `research/` directory and run experiments in order:
-
-```bash
-cd research
-
-# Step 1: Download and process dataset
-python main.py
-
-# Step 2: Run all experiments
-python experiment_1.py       # Supervised CNN
-python experiment_2_1.py     # Unsupervised Autoencoder
-python experiment_2_2.py     # Transfer Learning (Pre-trained Encoder)
-python experiment_3.py       # Transfer Learning with EfficientNetB0
-```
-
-All results will be saved to `research/output/` directory with metrics and visualizations.
-
----
-
 ## Running the Application (NeuroScan AI)
 
 ### 1. Download the Pre-trained Model
@@ -96,6 +75,27 @@ From the root directory:
 ```bash
 streamlit run frontend/ui.py
 ```
+
+---
+
+## Running Research Experiments
+
+Navigate to the `research/` directory and run experiments in order:
+
+```bash
+cd research
+
+# Step 1: Download and process dataset
+python main.py
+
+# Step 2: Run all experiments
+python experiment_1.py       # Supervised CNN
+python experiment_2_1.py     # Unsupervised Autoencoder
+python experiment_2_2.py     # Transfer Learning (Pre-trained Encoder)
+python experiment_3.py       # Transfer Learning with EfficientNetB0
+```
+
+All results will be saved to `research/output/` directory with metrics and visualizations.
 
 ## Experiment Details
 
