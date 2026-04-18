@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from scripts.main import train_loader, test_loader, val_loader, train_loader_no_aug
+from main import train_loader, test_loader, val_loader, train_loader_no_aug
 
 output_dir = "output"
 os.makedirs(output_dir, exist_ok=True)
