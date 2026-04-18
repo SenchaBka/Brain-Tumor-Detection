@@ -4,10 +4,10 @@
 
 This project implements three different deep learning approaches for automated brain tumor detection from MRI images:
 
-1. **Experiment 1**: Supervised CNN (Direct Learning)
+1. **Experiment 1**: Supervised CNN
 2. **Experiment 2.1**: Unsupervised Autoencoder (Feature Learning)
 3. **Experiment 2.2**: Transfer Learning with Pre-trained Encoder
-4. **Experiment 3**:
+4. **Experiment 3**: Transfer Learning with EfficientNetB0 
 
 The project compares these approaches to identify the most effective method for brain tumor classification with limited labeled data.
 
@@ -26,6 +26,78 @@ Davi Zevallos, Erwin Julian, Tian Li, Michael Asfeha, Arseni Buriak, Anmol Shres
 - **Source**: Kaggle Hub (`navoneel/brain-mri-images-for-brain-tumor-detection`)
 - **Download**: Automatic via `kagglehub` Python library
 - **Images**: Binary classification (tumor/healthy)
+
+
+## Getting Started
+
+### 1. Prerequisites
+* Python 3.9+
+* Virtual Environment (recommended)
+* Kaggle API token (for dataset download)
+
+### 2. Setup
+```bash
+# Clone the repository
+git clone https://github.com/SenchaBka/Brain-Tumor-Detection.git
+cd Brain-Tumor-Detection
+
+# Create and activate virtual environment
+python3 -m venv venv
+
+# For Windows
+venv\Scripts\activate
+# For MacOS/Linux
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+---
+
+## Running Research Experiments
+
+Navigate to the `research/` directory and run experiments in order:
+
+```bash
+cd research
+
+# Step 1: Download and process dataset
+python main.py
+
+# Step 2: Run all experiments
+python experiment_1.py       # Supervised CNN
+python experiment_2_1.py     # Unsupervised Autoencoder
+python experiment_2_2.py     # Transfer Learning (Pre-trained Encoder)
+python experiment_3.py       # Transfer Learning with EfficientNetB0
+```
+
+All results will be saved to `research/output/` directory with metrics and visualizations.
+
+---
+
+## Running the Application (NeuroScan AI)
+
+### 1. Download the Pre-trained Model
+```bash
+cd app
+python3 download_model.py
+```
+
+### 2. Run the Backend API
+From the root directory:
+```bash
+cd app
+python3 app.py
+```
+The API will run at http://127.0.0.1:5000
+
+### 3. Run the Frontend UI
+From the root directory:
+```bash
+streamlit run frontend/ui.py
+```
+
+## Experiment Details
 
 ### Dataset Retrieval & Processing
 
@@ -50,42 +122,6 @@ The dataset is automatically downloaded and processed by `main.py`:
    - Apply conservative augmentation to training data only
 
 ---
-
-## Installation & Setup
-
-### 1. Prerequisites
-- Python 3.8 or higher
-- pip (Python package manager)
-- CUDA-compatible GPU (optional, recommended for faster training)
-- Activate Virtual Enviroment before (optional, but recommended)
-
-## Running the Code
-
-```bash
-# Step 1: Install dependencies
-pip install -r requirement.txt
-
-# Step 2: Download and process dataset
-python main.py
-
-# Run all experiments sequentially
-python experiment_1.py       
-python experiment_2_1.py    
-python experiment_2_2.py  
-```
-## Results & Output Files
-
-All results saved to `output/` folder:
-
-- **accuracy_comparison.txt** - Detailed accuracy metrics for all experiments
-- **original_images.png** - Sample MRI images (tumor & healthy)
-- **autoencoder_training_loss.png** - Autoencoder loss curves
-- **autoencoder_reconstructed_images.png** - Reconstruction examples
-- **encoder.pth** - Pre-trained encoder weights (from Exp 2.1)
-- **$(experiment)_training.png** - Training/validation curves
-
-
-## Experiment Details
 
 ### Experiment 1: Supervised CNN
 **Goal**: Train CNN directly on labeled data
@@ -139,7 +175,29 @@ All results saved to `output/` folder:
 
 ---
 
-### Experiment 3: 
+### Experiment 3: Transfer Learning with EfficientNetB0 (TensorFlow/Keras)
+**Goal**: Leverage pre-trained ImageNet weights for brain tumor detection
+
+**Architecture**:
+- Base Model: EfficientNetB0 (pre-trained on ImageNet)
+- Classification Head: GlobalAveragePooling2D → Dropout(0.2) → Dense(1, sigmoid)
+- Two variants: 
+  - From Scratch: Random initialization (baseline)
+  - Transfer Learning: Frozen backbone + trained classifier
+
+**Training**:
+- Framework: TensorFlow/Keras
+- Epochs: 20
+- Batch Size: 16
+- Optimizer: Adam (lr=0.001)
+- Loss: Binary Cross-entropy
+- Data Augmentation: Random flip, rotation, contrast (GPU-accelerated on-the-fly)
+
+**Results**:
+- **From Scratch**: 63.16% validation accuracy (severe overfitting - 64% train acc visible)
+- **Transfer Learning**: 89.47% validation accuracy
+- **Test Set Performance**: 87% accuracy, **91% tumor recall** (after threshold optimization)
+- **AUC**: High AUC score via ROC curve analysis
 
 ---
 
@@ -157,97 +215,6 @@ All results saved to `output/` folder:
 | **Image Processing** | Pillow (PIL), NumPy |
 | **Communication** | REST API (JSON via HTTP) |
 
-## 📚 Core Libraries
-* **TensorFlow:** For model inference and loading the pre-trained weights.
-* **Flask & Flask-CORS:** To host the RESTful API and handle cross-origin requests.
-* **Streamlit:** To provide a responsive, user-friendly diagnostic interface.
-* **Pillow:** For consistent image resizing and RGB conversion.
-* **Requests:** For communication between the UI and the Backend.
-
----
-
-## 🏗️ Architecture Design Patterns
-
-This project follows a decoupled architecture to separate business logic from data providers and the web interface.
-
-
-
-### 1. Adapter Pattern (`image_adapter.py`)
-The **Adapter** acts as a "translator." It takes raw bytes from the HTTP request and transforms them into a normalized NumPy tensor. This ensures that the model always receives data in the exact format it was trained on (e.g., 224x224 RGB), regardless of the original file's dimensions.
-
-### 2. Repository Pattern (`model_repository.py`)
-
-The **Repository** manages the persistence and lifecycle of the AI model. It handles the heavy lifting of loading the `.keras` file from the disk into memory. By isolating this, the rest of the application doesn't need to know *how* the model is stored or loaded.
-
-### 3. Service Layer (`prediction_service.py`)
-The **Service** layer is the "Brain" of the application. It coordinates the logic:
-1. Receiving the processed image from the **Adapter**.
-2. Requesting the model from the **Repository**.
-3. Executing the prediction and applying business rules (e.g., applying the 0.5 probability threshold for "Tumor" vs. "Healthy").
-
-### 4. Presentation Layer (`ui.py` & `app.py`)
-The **Flask API** acts as the delivery mechanism for the services, while the **Streamlit UI** provides a human-readable interface for doctors and researchers to interact with the system.
-
----
-
-## 🚀 Getting Started
-
-### 1. Prerequisites
-* Python 3.9+
-* Virtual Environment (recommended)
-
-### 2. Virtual Environment & Packages
-```bash
-# Clone the repository
-git clone https://github.com/SenchaBka/Brain-Tumor-Detection.git
-cd Brain-Tumor-Detection
-
-# Create and activate virtual environment
-python3 -m venv venv
-
-# for MacOS
-source venv/bin/activate
-
-# Install dependencies for Application (not research)
-pip install -r tensorflow Pillow Flask numpy
-```
-### Download the model from Huggin face
-```bash
-cd app
-python3 script.py
-
-```
-### 2. Run the Backend
-current-directory: Brain-Tumor-Detection
-```bash
-cd app
-python3 app.py
-```
-The API will run at http://127.0.0.1:5000
-
-### 3. Run the Frontend
-Go back to root directory : Brain-Tumor-Detection
-```bash
-streamlit run frontend/ui.py
-```
-
-### Project Structure
-
-```bash
-BRAIN-TUMOR-DETECTION/
-├── app/                      # Production Backend
-│   ├── models/               # Pre-trained .keras files
-│   ├── app.py                # Flask Entry Point
-│   ├── image_adapter.py      # Data Transformation (Adapter)
-│   ├── model_repository.py   # Model Loading (Repository)
-│   └── prediction_service.py # Business Logic (Service)
-├── frontend/                 # Streamlit UI
-│   └── ui.py
-├── research/                 # Experimental Scripts, Model Weights
-├── dataset/                  # MRI Scans in train_test_val split ()
-├── requirements.txt          # Global Dependencies
-└── README.md
-```
 
 ## References
 
@@ -258,5 +225,5 @@ BRAIN-TUMOR-DETECTION/
 
 ---
 
-**Last Updated**: April 16, 2026  
+**Last Updated**: April 18, 2026  
 **Status**: Active Development
