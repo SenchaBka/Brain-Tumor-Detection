@@ -20,7 +20,7 @@ BATCH_SIZE = 16
 EPOCHS = 20
 
 # 2. DATA PIPELINE
-from scripts.main import train_files, train_labels, val_files, val_labels, test_files, test_labels
+from main import train_files, train_labels, val_files, val_labels, test_files, test_labels
 
 def process_path(file_path, label):
     # Read and decode the image (automatically converts to 3 channels/RGB like PyTorch)
@@ -95,7 +95,8 @@ for images, labels in train_ds.take(1):
         plt.axis("off")
 
     plt.suptitle("On-the-Fly Data Augmentation: Original vs. GPU-Transformed", fontsize=16)
-    plt.show()
+    plt.savefig(os.path.join("output", "experiment3_augmentation_samples.png"))
+    plt.close()
     break
 
 
@@ -162,10 +163,10 @@ history_transfer = model_transfer.fit(train_ds, validation_data=val_ds, epochs=E
 
 # Save the transfer learning model weights
 os.makedirs("output", exist_ok=True)
-model_transfer.save_weights(os.path.join("output", "model_transfer_weights.h5"))
-print("\n✓ Saved Transfer Learning model weights to output/model_transfer_weights.h5")
+model_transfer.save_weights(os.path.join("output", "model_transfer.weights.h5"))
+print("\n✓ Saved Transfer Learning model weights to output/model_transfer.weights.h5")
 
-model_transfer.save('brain_tumor_tf_model_v1')
+model_transfer.save(os.path.join("output", "brain_tumor_tf_model_v1.keras"))
 
 
 # All the plots
@@ -186,7 +187,8 @@ plt.plot(history_scratch.history['val_loss'], label='Val Loss', color='red')
 plt.title('Experiment B (Scratch): Loss')
 plt.legend()
 plt.tight_layout()
-plt.show()
+plt.savefig(os.path.join("output", "experiment3_scratch_training.png"))
+plt.close()
 
 # 2. Figure for Transfer Learning Experiment
 plt.figure(figsize=(12, 4))
@@ -202,13 +204,14 @@ plt.plot(history_transfer.history['val_loss'], label='Val Loss', color='orange')
 plt.title('Experiment C (Transfer Learning): Loss')
 plt.legend()
 plt.tight_layout()
-plt.show()
+plt.savefig(os.path.join("output", "experiment3_transfer_training.png"))
+plt.close()
 
 
 
 # Confusion Matrix
 
-def plot_confusion_matrix(model, dataset, class_names):
+def plot_confusion_matrix(model, dataset, class_names, filename="experiment3_confusion_matrix.png"):
     # 1. Get all true labels and predictions
     y_true = []
     y_pred = []
@@ -229,10 +232,42 @@ def plot_confusion_matrix(model, dataset, class_names):
     plt.title('Confusion Matrix: Brain Tumor Detection')
     plt.ylabel('Actual Label')
     plt.xlabel('Predicted Label')
-    plt.show()
+    plt.savefig(os.path.join("output", filename))
+    plt.close()
 
     print("\nClassification Report:")
-    print(classification_report(y_true, y_pred, target_names=class_names))
+    report = classification_report(y_true, y_pred, target_names=class_names)
+    print(report)
+    return y_true, y_pred, report
 
 # Run it for your Transfer Learning model (evaluate on unseen test data!)
-plot_confusion_matrix(model_transfer, test_ds, ['No Tumor', 'Tumor'])
+y_true, y_pred, report = plot_confusion_matrix(model_transfer, test_ds, ['No Tumor', 'Tumor'])
+
+# Save accuracy results to txt file
+final_scratch_acc = history_scratch.history['val_accuracy'][-1]
+final_scratch_loss = history_scratch.history['val_loss'][-1]
+final_transfer_acc = history_transfer.history['val_accuracy'][-1]
+final_transfer_loss = history_transfer.history['val_loss'][-1]
+
+with open(os.path.join("output", "accuracy_comparison.txt"), "a") as f:
+    f.write("="*60 + "\n")
+    f.write("EXPERIMENT 3: EfficientNetB0 (TensorFlow/Keras)\n")
+    f.write("="*60 + "\n\n")
+
+    f.write(f"Scratch (No Pretrained Weights):\n")
+    f.write(f"  Final Validation Accuracy: {final_scratch_acc:.4f}\n")
+    f.write(f"  Final Validation Loss: {final_scratch_loss:.4f}\n\n")
+
+    f.write(f"Transfer Learning (ImageNet Weights, Frozen Backbone):\n")
+    f.write(f"  Final Validation Accuracy: {final_transfer_acc:.4f}\n")
+    f.write(f"  Final Validation Loss: {final_transfer_loss:.4f}\n\n")
+
+    f.write(f"Comparison:\n")
+    f.write(f"  Better Approach: {'Transfer Learning' if final_transfer_acc > final_scratch_acc else 'Scratch'}\n")
+    f.write(f"  Accuracy Difference: {abs(final_transfer_acc - final_scratch_acc):.4f}\n\n")
+
+    f.write(f"Test Set Classification Report:\n")
+    f.write(report + "\n\n")
+
+print("\n✓ Accuracies saved to output/accuracy_comparison.txt")
+print("✓ Plots saved to output/ folder")
